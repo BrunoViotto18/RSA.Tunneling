@@ -1,7 +1,5 @@
 using System.Buffers.Binary;
-using System.Collections.ObjectModel;
 using System.Numerics;
-using System.Text;
 
 namespace Viotto.Security;
 
@@ -53,13 +51,21 @@ public sealed class Sha256Hasher
         for (int i = 0; i < loops; i++)
         {
             blob <<= 8;
-            blob |= i switch
+            if (i < data.Length)
             {
-                var x when x < data.Length => data[i],
-                var x when x == data.Length => 0x80,
-                var x when x < data.Length + 1 + padding => 0x0,
-                _ => (uint)((data.Length * 8L) >> ((7 - (i + 8 - loops)) * 8))
-            };
+                blob |= data[i];
+            }
+            else if (i == data.Length)
+            {
+                blob |= 0x80;
+            }
+            else if (i >= data.Length + 1 + padding)
+            {
+                var lengthByteIndex = 7 - (i + 8 - loops);
+                var shift = lengthByteIndex * 8;
+
+                blob |= (uint)((data.Length * 8L) >> shift);
+            }
 
             if (i % 4 == 3)
             {
