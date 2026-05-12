@@ -5,34 +5,22 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "cofre cifrar",
+      "name": "SHA256",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "dotnet: build",
-      "cwd": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0",
-      "program": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0/Viotto.Security.Vault.dll",
-      "args": ["cifrar", "mensagem.txt"],
+      "cwd": "${workspaceFolder}/src/Viotto.Security.AuthSign/bin/Debug/net10.0",
+      "program": "${workspaceFolder}/src/Viotto.Security.AuthSign/bin/Debug/net10.0/Viotto.Security.AuthSign.dll",
+      "args": "${input:programArgs}",
       "console": "integratedTerminal"
-    },
+    }
+  ],
+  "inputs": [
     {
-      "name": "cofre decifrar",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "dotnet: build",
-      "cwd": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0",
-      "program": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0/Viotto.Security.Vault.dll",
-      "args": ["decifrar", "mensagem.txt.cifrado"],
-      "console": "integratedTerminal"
-    },
-    {
-      "name": "cofre testar",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "dotnet: build",
-      "cwd": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0",
-      "program": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0/Viotto.Security.Vault.dll",
-      "args": ["testar"],
-      "console": "integratedTerminal"
+      "id": "programArgs",
+      "type": "promptString",
+      "description": "Program arguments",
+      "default": "sign sample.txt"
     }
   ]
 }
