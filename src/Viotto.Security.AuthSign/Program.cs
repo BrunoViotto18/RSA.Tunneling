@@ -4,7 +4,7 @@ using Viotto.Security;
 
 if (args.Length < 2 || args[0] is not "sign" and not "auth")
 {
-    throw new ArgumentException("Argumentos desconhecidos ou inálidos");
+    throw new ArgumentException("Argumentos desconhecidos ou inválidos");
 }
 
 var sha256Hasher = new Sha256Hasher();
