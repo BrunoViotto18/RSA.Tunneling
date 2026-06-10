@@ -1,8 +1,8 @@
 # Cofre
 
-Este projeto tem como objetivo implementar um cofre de arquivos/senhas utilizando o algoritmo AES256
+Este projeto tem como objetivo implementar funcionalidades de criptografia e segurança
 
-## Como executar o cofre?
+## Como executar?
 
 1. Abra a solução no Visual Studio Code
 
@@ -10,6 +10,4 @@ Este projeto tem como objetivo implementar um cofre de arquivos/senhas utilizand
 
 3. Execute o comando desejado
 
-OBS: O arquivo mensagem.txt.cifrado é armazenado em base64 no mesmo diretório do ".exe"
-
-Caminho do arquivo cifrado: ${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0/mensagem.txt.cifrado
+OBS: No caso do Vault, o arquivo mensagem.txt.cifrado é armazenado em base64 no mesmo diretório do ".exe"
