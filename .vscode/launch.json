@@ -5,22 +5,22 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "SHA256",
+      "name": "SecureChat",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "dotnet: build",
-      "cwd": "${workspaceFolder}/src/Viotto.Security.AuthSign/bin/Debug/net10.0",
-      "program": "${workspaceFolder}/src/Viotto.Security.AuthSign/bin/Debug/net10.0/Viotto.Security.AuthSign.dll",
-      "args": "${input:programArgs}",
-      "console": "integratedTerminal"
-    }
-  ],
-  "inputs": [
-    {
-      "id": "programArgs",
-      "type": "promptString",
-      "description": "Program arguments",
-      "default": "sign sample.txt"
+      "cwd": "${workspaceFolder}/src/Viotto.Security.SecureChat/bin/Debug/net10.0",
+      "program": "${workspaceFolder}/src/Viotto.Security.SecureChat/bin/Debug/net10.0/Viotto.Security.SecureChat.dll",
+      //   "args": "${input:programArgs}",
+      "console": "externalTerminal"
     }
   ]
+  //   "inputs": [
+  //     {
+  //       "id": "programArgs",
+  //       "type": "promptString",
+  //       "description": "Program arguments",
+  //       "default": "sign sample.txt"
+  //     }
+  //   ]
 }
