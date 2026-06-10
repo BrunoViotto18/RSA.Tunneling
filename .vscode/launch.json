@@ -13,14 +13,40 @@
       "program": "${workspaceFolder}/src/Viotto.Security.SecureChat/bin/Debug/net10.0/Viotto.Security.SecureChat.dll",
       //   "args": "${input:programArgs}",
       "console": "externalTerminal"
+    },
+    {
+      "name": "Vault",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "dotnet: build",
+      "cwd": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0",
+      "program": "${workspaceFolder}/src/Viotto.Security.Vault/bin/Debug/net10.0/Viotto.Security.Vault.dll",
+      "args": "${input:VaultArgs}",
+      "console": "externalTerminal"
+    },
+    {
+      "name": "AuthSign",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "dotnet: build",
+      "cwd": "${workspaceFolder}/src/Viotto.Security.AuthSign/bin/Debug/net10.0",
+      "program": "${workspaceFolder}/src/Viotto.Security.AuthSign/bin/Debug/net10.0/Viotto.Security.AuthSign.dll",
+      "args": "${input:AuthSignArgs}",
+      "console": "externalTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "VaultArgs",
+      "type": "promptString",
+      "description": "Program arguments",
+      "default": "cifrar mensagem.txt"
+    },
+    {
+      "id": "AuthSignArgs",
+      "type": "promptString",
+      "description": "Program arguments",
+      "default": "sign sample.txt"
     }
   ]
-  //   "inputs": [
-  //     {
-  //       "id": "programArgs",
-  //       "type": "promptString",
-  //       "description": "Program arguments",
-  //       "default": "sign sample.txt"
-  //     }
-  //   ]
 }
