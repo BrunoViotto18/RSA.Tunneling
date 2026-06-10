@@ -119,6 +119,8 @@ static async Task RunNodeAsync(string nodeName, int port, string peerBaseUrl)
     buidler.Logging.ClearProviders();
     buidler.WebHost.UseUrls(selfBaseUrl);
 
+    buidler.Services.AddHttpClient();
+
     await using var app = buidler.Build();
 
     app.UseWebSockets();
@@ -170,11 +172,11 @@ static async Task RunNodeAsync(string nodeName, int port, string peerBaseUrl)
             {
                 var bytes = memoryStream.ToArray();
                 memoryStream.SetLength(0);
-                
-                var message = Encoding.UTF8.GetString(bytes);
+
+                var decryptedMessage = DecryptBytes(bytes, privateKey);
 
                 Console.Write('\r');
-                Console.WriteLine($"[CHAT]: {message}");
+                Console.WriteLine($"[CHAT]: {decryptedMessage}");
                 Console.Write("> ");
             }
         }
@@ -183,6 +185,38 @@ static async Task RunNodeAsync(string nodeName, int port, string peerBaseUrl)
     var _ = Task.Run(async () => app.RunAsync()).Unwrap();
 
     using var webSocket = await ConnectToPeerWebSocketAsync(new Uri(peerWebSocketUrl));
+
+    RsaKey peerPublicKey;
+    while (true)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+
+        var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
+
+        var httpClient = httpClientFactory.CreateClient();
+
+        try
+        {
+            var response = await httpClient.GetAsync($"{peerBaseUrl}/public-key");
+
+            response.EnsureSuccessStatusCode();
+
+            var key = await response.Content.ReadFromJsonAsync<RsaKey>();
+
+            if (key is null)
+            {
+                continue;
+            }
+
+            peerPublicKey = key;
+
+            break;
+        }
+        catch (Exception)
+        {
+            await Task.Delay(100);
+        }
+    }
 
     while (true)
     {
@@ -207,10 +241,10 @@ static async Task RunNodeAsync(string nodeName, int port, string peerBaseUrl)
             continue;
         }
 
-        var messageBytes = Encoding.UTF8.GetBytes(message);
+        var encryptedMessage = EncryptMessage(message, peerPublicKey);
 
         await webSocket.SendAsync(
-            new ArraySegment<byte>(messageBytes),
+            new ArraySegment<byte>(encryptedMessage),
             WebSocketMessageType.Text,
             endOfMessage: true,
             CancellationToken.None
@@ -238,4 +272,36 @@ static async Task<ClientWebSocket> ConnectToPeerWebSocketAsync(Uri peerWebSocket
     }
 
     throw new InvalidOperationException($"Could not connect to peer WebSocket {peerWebSocketUrl}", lastException);
+}
+
+static byte[] EncryptMessage(string message, RsaKey publicKey)
+{
+    var rsaEncrypter = new RsaEncrypter();
+    var base64Encoder = new Base64Encoder();
+
+    var messageBytes = Encoding.UTF8.GetBytes(message);
+
+    var encryptedBytes = rsaEncrypter.Encrypt(messageBytes, publicKey);
+
+    var encryptedBase64 = base64Encoder.ToBase64(encryptedBytes);
+
+    var encryptedMessage = Encoding.UTF8.GetBytes(encryptedBase64);
+
+    return encryptedMessage;
+}
+
+static string DecryptBytes(byte[] bytes, RsaKey privateKey)
+{
+    var rsaEncrypter = new RsaEncrypter();
+    var base64Encoder = new Base64Encoder();
+
+    var encryptedBas64 = Encoding.UTF8.GetString(bytes);
+
+    var encryptedBytes = base64Encoder.FromBase64(encryptedBas64);
+
+    var decryptedBytes = rsaEncrypter.Decrypt(encryptedBytes, privateKey);
+
+    var decryptedMessage = Encoding.UTF8.GetString(decryptedBytes);
+
+    return decryptedMessage;
 }
