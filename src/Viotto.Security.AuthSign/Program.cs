@@ -1,5 +1,4 @@
-﻿
-using System.Text;
+﻿using System.Text;
 using Viotto.Security;
 
 if (args.Length < 2 || args[0] is not "sign" and not "auth")
