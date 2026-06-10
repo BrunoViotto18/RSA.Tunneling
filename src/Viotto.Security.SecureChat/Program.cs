@@ -4,6 +4,7 @@ using System.Net.WebSockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.AspNetCore.WebUtilities;
 using Viotto.Security;
 
 if (args.Length == 0)
@@ -19,8 +20,8 @@ if (args is ["node", var nodeName, var portText, var peerBaseUrl])
     return;
 }
 
-Console.Error.WriteLine("Invalid arguments");
-Console.Error.WriteLine("Run with no arguments to start both nodes");
+await Console.Error.WriteLineAsync("Invalid arguments");
+await Console.Error.WriteLineAsync("Run with no arguments to start both nodes");
 
 static async Task RunParentAsync()
 {
@@ -163,19 +164,23 @@ static async Task RunNodeAsync(string nodeName, int port, string peerBaseUrl)
                 throw new InvalidOperationException("Only text WebSocket messages are supported");
             }
 
-            memoryStream.Write(buffer, 0, result.Count);
+            await memoryStream.WriteAsync(buffer, 0, result.Count);
 
             if (result.EndOfMessage)
             {
-                var message = Encoding.UTF8.GetString(memoryStream.ToArray());
+                var bytes = memoryStream.ToArray();
+                memoryStream.SetLength(0);
+                
+                var message = Encoding.UTF8.GetString(bytes);
+
+                Console.Write('\r');
                 Console.WriteLine($"[CHAT]: {message}");
+                Console.Write("> ");
             }
         }
     });
 
-    Console.WriteLine("> ");
-
-    var serverTask = app.RunAsync();
+    var _ = Task.Run(async () => app.RunAsync()).Unwrap();
 
     using var webSocket = await ConnectToPeerWebSocketAsync(new Uri(peerWebSocketUrl));
 
