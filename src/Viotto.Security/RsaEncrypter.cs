@@ -1,12 +1,46 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Security.Cryptography;
 
 namespace Viotto.Security;
 
 public class RsaEncrypter
 {
+    public BigInteger GenerateBigPrime(int bits, int rounds = 40)
+    {
+        if (bits < 2)
+        {
+            throw new ArgumentException("Bit size must be at least 2", nameof(bits));
+        }
+
+        if (rounds < 1)
+        {
+            throw new ArgumentException("Rounds must be at least 1", nameof(rounds));
+        }
+
+        while (true)
+        {
+            var candidate = GenerateRandomOddBigInteger(bits);
+
+            if (IsProbablyPrime(candidate, rounds))
+            {
+                return candidate;
+            }
+        }
+    }
+
     public (RsaKey publicKey, RsaKey privateKey) GenerateKeys(BigInteger p, BigInteger q)
     {
+        if (p == q)
+        {
+            throw new ArgumentException("p and q must be different primes");
+        }
+
+        if (p < 3 || q < 3 || p % 2 == 0 || q % 2 == 0)
+        {
+            throw new ArgumentException("p and q must be odd primes greater than 2");
+        }
+
         var n = p * q;
 
         var phi = (p - 1) * (q - 1);
@@ -38,6 +72,11 @@ public class RsaEncrypter
         {
             plainBlockSize = (int)((publicKey.Product.GetBitLength() - 1) / 8);
             cipherBlockSize = (int)((publicKey.Product.GetBitLength() + 7) / 8);
+        }
+
+        if (plainBlockSize < 1)
+        {
+            throw new ArgumentException("RSA key is too small");
         }
 
         using var output = new MemoryStream();
@@ -83,9 +122,94 @@ public class RsaEncrypter
         return output.ToArray();
     }
 
+    private static BigInteger GenerateRandomOddBigInteger(int bits)
+    {
+        int byteCount = (bits + 7) / 8;
+        var bytes = new byte[byteCount];
+
+        RandomNumberGenerator.Fill(bytes);
+
+        int extraBits = byteCount * 8 - bits;
+
+        bytes[0] &= (byte)(0xFF >> extraBits);
+
+        bytes[0] |= (byte)(1 << (7 - extraBits));
+
+        bytes[^1] |= 1;
+
+        return new BigInteger(bytes, isUnsigned: true, isBigEndian: true);
+    }
+
+    private static bool IsProbablyPrime(BigInteger n, int rounds)
+    {
+        if (n < 2)
+        {
+            return false;
+        }
+
+        if (n < 4)
+        {
+            return true;
+        }
+
+        if (n % 2 == 0)
+        {
+            return false;
+        }
+
+        BigInteger d = n - 1;
+        int s = 0;
+
+        while (d % 2 == 0)
+        {
+            d /= 2;
+            s++;
+        }
+
+        var bytes = new byte[n.GetByteCount(isUnsigned: true)];
+
+        for (int i = 0; i < rounds; i++)
+        {
+            BigInteger a;
+
+            do
+            {
+                RandomNumberGenerator.Fill(bytes);
+                a = new BigInteger(bytes, isUnsigned: true, isBigEndian: true);
+            } while (a < 2 || a >= n - 2);
+
+            BigInteger x = BigInteger.ModPow(a, d, n);
+
+            if (x == 1 || x == n - 1)
+            {
+                continue;
+            }
+
+            bool passed = false;
+
+            for (int r = 1; r < s; r++)
+            {
+                x = BigInteger.ModPow(x, 2, n);
+
+                if (x == n - 1)
+                {
+                    passed = true;
+                    break;
+                }
+            }
+
+            if (!passed)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static BigInteger GetPublicExponent(BigInteger phi)
     {
-        var e = 65537;
+        BigInteger e = 65537;
 
         if (e < phi && BigInteger.GreatestCommonDivisor(e, phi) == 1)
         {
