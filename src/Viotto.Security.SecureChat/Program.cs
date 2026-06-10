@@ -66,10 +66,10 @@ static void StartNode(string exePath, string nodeName, int port, string peerBase
         string[] terminalCommands =
         [
             $"alacritty -e bash -lc '{command}'",
-            $"x-terminal-emulator -e bash -lc '{command}'",
-            $"gnome-terminal -- bash -lc '{command}'",
-            $"konsole -e bash -lc '{command}'",
-            $"kitty bash -lc '{command}'",
+            // $"x-terminal-emulator -e bash -lc '{command}'",
+            // $"gnome-terminal -- bash -lc '{command}'",
+            // $"konsole -e bash -lc '{command}'",
+            // $"kitty bash -lc '{command}'",
         ];
 
         foreach (var terminalCommand in terminalCommands)
